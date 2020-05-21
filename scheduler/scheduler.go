@@ -45,7 +45,7 @@ func Task() {
 		if (duration > 15) {
 			//send email
 			userId := strings.Split(key, "-")[1]
-			err = handler.SendEmail("sadwqwe2112@gmail.com", "shivam043@gmail.com", userId)
+			err = handler.SendEmail("frommail@gmail.com", "tomail@gmail.com", userId)
 			if err != nil {
 				Logger.Errorf("error sending mail " + err.Error())
 			}

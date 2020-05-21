@@ -39,7 +39,6 @@ func Send(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//userEmail := "shivam043@gmail.com"
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 	pdf.Image("static/db.jpeg", 15, 15, 267, 0, false, "", 0, "")
