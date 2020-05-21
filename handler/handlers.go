@@ -17,6 +17,11 @@ import (
 	"time"
 )
 
+type Response struct {
+	Success bool   `json:"success"`
+	Output  string `json:"error"`
+}
+
 var Logger = logging.NewLogger()
 
 // generate pdf and email
@@ -29,10 +34,11 @@ func Send(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["id"]
 	//set timestamp value in redis
-	if (!redis.SetValue("userId-"+userId, time.Now().String(), 0)) {
+	if !redis.SetValue("userId-"+userId, time.Now().String(), 0) {
 		Logger.Errorf("error setting timestamp for userId " + userId)
 	}
 	var pdfOutput map[string]interface{}
+	var resp Response
 	//decode json
 	err := json.NewDecoder(r.Body).Decode(&pdfOutput)
 	if err != nil {
@@ -49,11 +55,11 @@ func Send(w http.ResponseWriter, r *http.Request) {
 		wo := ""
 		var st []string
 		for i := range word {
-			if (i == 0) {
+			if i == 0 {
 				wo = strconv.Itoa(count+1) + "."
 			}
 			wo = wo + string(word[i])
-			if (len((wo)) > 60) {
+			if len((wo)) > 60 {
 				st = append(st, wo)
 				wo = ""
 			}
@@ -70,14 +76,26 @@ func Send(w http.ResponseWriter, r *http.Request) {
 
 	err = pdf.OutputFileAndClose("static/pdfs/" + userId + ".pdf")
 	if err != nil {
+		resp.Output = err.Error()
 		Logger.Errorf("error generating pdf for userId " + userId)
 	}
 	err = SendEmail("frommail@gmail.com", "tomail@gmail.com", userId)
 	if err != nil {
+		resp.Output = err.Error()
 		Logger.Errorf("error sending mail " + err.Error())
 	}
-	w.Write([]byte("foo"))
-	//fmt.Fprintf(w, "Category: %v\n", vars)
+	if resp.Output != "" {
+		resp.Success = false
+	} else {
+		resp.Success = true
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&resp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 }
 

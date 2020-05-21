@@ -4,6 +4,7 @@ import (
 	"github.com/doubtnut/handler"
 	"github.com/doubtnut/logging"
 	"github.com/doubtnut/redis"
+	"github.com/doubtnut/scheduler"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"log"
@@ -24,7 +25,7 @@ func init() {
 func main() {
 	Logger.Infof("starting service ")
 	redis.Init()
-	//scheduler.Init()
+	scheduler.Init()
 	router := mux.NewRouter()
 	sub := router.PathPrefix("/api/v1").Subrouter()
 	sub.Methods(http.MethodPost).Path("/send/{id:[0-9]+}").HandlerFunc(handler.Send)
